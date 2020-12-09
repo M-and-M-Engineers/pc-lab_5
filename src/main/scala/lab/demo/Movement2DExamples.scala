@@ -14,10 +14,10 @@ object MovementSimulation extends App {
   // -- simulation parameters --
   val distance = 150 // the range to consider two nodes as neighbours
   val howMany = 100 // nodes spawn in the simulation
-  val width = 800 // simulated environment width
-  val height = 600 // simulated environment height
+  val width = 1024 // simulated environment width
+  val height = 768 // simulated environment height
   // -- aggregate program of simulation --
-  val programClass = classOf[LeaderStrategy]
+  val programClass = classOf[ConstantMovement]
   // -- GUI parameters
   ViewSetting.labelFontSize = 5
   ViewSetting.windowConfiguration = WindowConfiguration(width, height) // WindowConfiguration() for a full screen panel
@@ -29,7 +29,7 @@ object MovementSimulation extends App {
       exportEvaluations = List.empty
     ),
     RadiusLikeSimulation(distance),
-    neighbourRender = false,
+    neighbourRender = true,
   ).launch()
 
 }
