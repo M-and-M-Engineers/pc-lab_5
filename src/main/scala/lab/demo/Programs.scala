@@ -1,23 +1,44 @@
 package lab.demo
 
 import it.unibo.scafi.incarnations.BasicAbstractIncarnation
+import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.bridge.ExportEvaluation.EXPORT_EVALUATION
 import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.bridge.SimulationInfo
-import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.configuration.ScafiProgramBuilder
+import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.configuration.{ScafiProgramBuilder, ScafiWorldInformation}
 import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.world.ScafiWorldInitializer.Random
+import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.bridge.ScafiWorldIncarnation.EXPORT
+import it.unibo.scafi.simulation.s2.frontend.view.{ViewSetting, WindowConfiguration}
 import lab.gui.patch.RadiusLikeSimulation
+import it.unibo.scafi.space.graphics2D.BasicShape2D.Circle
 
 object Incarnation extends BasicAbstractIncarnation
 import lab.demo.Incarnation._ //import all stuff from an incarnation
 
 object Simulation extends App {
-  val programClass = classOf[Main16]
-  val nodes = 50
+
+  val formatter_evaluation: EXPORT_EVALUATION[Any] = (e : EXPORT) => formatter(e.root[Any]())
+
+  val formatter: Any => Any = (e) => e match {
+    case (a,b) => (formatter(a),formatter(b))
+    case (a,b,c) => (formatter(a),formatter(b),formatter(c))
+    case (a,b,c,d) => (formatter(a),formatter(b),formatter(c),formatter(d))
+    case l:Iterable[_] => l.map(formatter(_)).toString
+    case i: java.lang.Number if (i.doubleValue()>100000) => "Inf"
+    case i: java.lang.Number if (-i.doubleValue()>100000) => "-Inf"
+    case i: java.lang.Double => f"${i.doubleValue()}%1.2f"
+    case x => x.toString
+  }
+
+  val programClass = classOf[Main17]
+  val nodes = 100
   val neighbourRange = 200
-  val (width, height) = (800, 600)
+  val (width, height) = (1920, 1080)
+  ViewSetting.windowConfiguration = WindowConfiguration(width, height)
+  ViewSetting.labelFontSize = 20
   ScafiProgramBuilder (
     Random(nodes, width, height),
-    SimulationInfo(programClass),
+    SimulationInfo(programClass,exportEvaluations = List(formatter_evaluation)),
     RadiusLikeSimulation(neighbourRange),
+    ScafiWorldInformation(shape = Some(Circle(5,5))),
     neighbourRender = true,
   ).launch()
 }
@@ -30,8 +51,7 @@ trait AggregateProgramSkeleton extends AggregateProgram with StandardSensors {
 }
 
 class Main extends AggregateProgramSkeleton {
-  def inc(x:Int):Int = x+1
-  override def main() = rep(init = 0)(fun = inc)
+  override def main() = mux(sense1)(1){0}
 }
 
 class Main1 extends AggregateProgramSkeleton {
@@ -85,7 +105,7 @@ class Main12 extends AggregateProgramSkeleton {
 }
 
 class Main13 extends AggregateProgramSkeleton {
-  override def main() = foldhoodPlus(0)(_+_){nbr{1}}
+  override def main() = foldhoodPlus(true)(_ && _){nbr{sense1}}
 }
 
 class Main14 extends AggregateProgramSkeleton {
@@ -95,9 +115,33 @@ class Main14 extends AggregateProgramSkeleton {
 }
 
 class Main15 extends AggregateProgramSkeleton {
-  override def main() = rep(Double.MaxValue){ d => mux[Double](sense1){0.0}{minHoodPlus(nbr{d}+1.0)} }
+  def gradient(src: Boolean): Double =
+    rep(Double.MaxValue) {
+      d => mux[Double](src) {
+        0.0
+      } {
+        minHoodPlus(nbr {
+          d
+        } + 1.0)
+      }
+    }
+
+  override def main() = (gradient(sense1), gradient(sense2))
 }
 
 class Main16 extends AggregateProgramSkeleton {
   override def main() = rep(Double.MaxValue){ d => mux[Double](sense1){0.0}{minHoodPlus(nbr{d}+nbrRange)} }
+}
+
+class Main17 extends AggregateProgramSkeleton {
+  def gradient(src: Boolean) = rep(Double.MaxValue) { d => mux[Double](src) {
+    0.0
+  } {
+    minHoodPlus(nbr {
+      d
+    } + nbrRange)
+  }
+  }
+
+  override def main() = branch(sense2){Double.MaxValue}{gradient(sense1)}
 }
