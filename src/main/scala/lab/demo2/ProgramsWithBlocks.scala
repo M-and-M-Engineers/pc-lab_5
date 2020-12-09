@@ -35,7 +35,7 @@ object SimulationWithBlocks extends App {
     case x => x.toString
   }
 
-  val programClass = classOf[Main5]
+  val programClass = classOf[Main12]
   val nodes = 100
   val neighbourRange = 200
   val (width, height) = (1920, 1080)
@@ -50,7 +50,7 @@ object SimulationWithBlocks extends App {
   ).launch()
 }
 
-trait AggregateProgramSkeleton extends AggregateProgram with StandardSensors with BlockG with BlockC {
+trait AggregateProgramSkeleton extends AggregateProgram with StandardSensors with BlockG with BlockC with BlockT with BlockS {
   def sense1 = sense[Boolean]("sens1")
   def sense2 = sense[Boolean]("sens2")
   def sense3 = sense[Boolean]("sens3")
@@ -81,70 +81,43 @@ class Main5 extends AggregateProgramSkeleton {
   override def main() = G2(sense1)(G2(sense2)(0.0)(_+nbrRange)(nbrRange))(x=>x)(nbrRange)
 }
 
-class Main6 extends AggregateProgramSkeleton {
-  override def main() = ???
+trait MyGrad extends AggregateProgramSkeleton {
+  def gradient(src:Boolean) = G2(src)(0.0)(_+nbrRange)(nbrRange)
 }
 
-class Main7 extends AggregateProgramSkeleton {
-  override def main() = mid()
+class Main6 extends AggregateProgramSkeleton with MyGrad {
+  override def main() = C[Double,Boolean](gradient(sense1),_||_, sense2,false)
 }
 
-class Main8 extends AggregateProgramSkeleton {
-  override def main() = minHoodPlus(nbrRange)
+class Main7 extends AggregateProgramSkeleton with MyGrad {
+  override def main() = C[Double,Int](gradient(sense1),_ + _, if(sense2) 1 else 0,0)
+}
+
+class Main8 extends AggregateProgramSkeleton with MyGrad {
+  override def main() = C[Double,Set[ID]](gradient(sense1),_ ++ _, if (sense2) Set(mid) else Set(), Set())
 }
 
 class Main9 extends AggregateProgramSkeleton {
-  override def main() = rep(0){_+1}
+  override def main() = branch(sense1){T[Int](1000,0, (x:Int) => x-1)}{0}
 }
 
 class Main10 extends AggregateProgramSkeleton {
-  override def main() = rep(Math.random()){x=>x}
+  override def main() = branch(sense1){T[Double](100000.0, (x:Double) => x*0.99)}{0}
 }
 
 class Main11 extends AggregateProgramSkeleton {
-  override def main() = rep[Double](0.0){x => x + rep(Math.random()){y=>y}}
+  def function:Double = Math.random()
+  override def main() = S(400,nbrRange)
 }
 
-class Main12 extends AggregateProgramSkeleton {
-    override def main() = maxHoodPlus(boolToInt(nbr{sense1}))
-}
-
-class Main13 extends AggregateProgramSkeleton {
-  override def main() = foldhoodPlus(true)(_ && _){nbr{sense1}}
-}
-
-class Main14 extends AggregateProgramSkeleton {
-  override def main() = rep(0){ x => boolToInt(sense1) max maxHoodPlus( nbr{x}) }
-}
-
-class Main15 extends AggregateProgramSkeleton {
-  def gradient(src: Boolean): Double =
-    rep(Double.MaxValue) {
-      d => mux[Double](src) {
-        0.0
-      } {
-        minHoodPlus(nbr {
-          d
-        } + 1.0)
-      }
-    }
-
-  override def main() = (gradient(sense1), gradient(sense2))
-}
-
-class Main16 extends AggregateProgramSkeleton {
-  override def main() = rep(Double.MaxValue){ d => mux[Double](sense1){0.0}{minHoodPlus(nbr{d}+nbrRange)} }
-}
-
-class Main17 extends AggregateProgramSkeleton {
-  def gradient(src: Boolean) = rep(Double.MaxValue) { d => mux[Double](src) {
-    0.0
-  } {
-    minHoodPlus(nbr {
-      d
-    } + nbrRange)
+class Main12 extends AggregateProgramSkeleton with MyGrad {
+  // local spread of information about nodes where sense1=true
+  override def main() = {
+    val input = if (sense1) 1.0 else 0.0 // rep(Math.random)(x=>x)
+    val leaders = S(400, nbrRange)
+    val partition = gradient(leaders)
+    val average = C[Double,Double](partition,_ + _, input, 0) / C[Double,Int](partition,_ + _, 1 , 0)
+    G2(leaders)(average)(x=>x)(nbrRange)
   }
-  }
-
-  override def main() = branch(sense2){Double.MaxValue}{gradient(sense1)}
 }
+
