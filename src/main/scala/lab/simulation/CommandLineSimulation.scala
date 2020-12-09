@@ -2,6 +2,7 @@ package lab.simulation
 import it.unibo.scafi.config.GridSettings
 import it.unibo.scafi.incarnations.{BasicAbstractSpatialSimulationIncarnation, BasicSimulationIncarnation}
 import lab.demo._
+import lab.demo2.ClockwiseMovement
 
 import scala.util.Random
 

@@ -5,6 +5,7 @@ import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.configuration.Sca
 import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.world.ScafiWorldInitializer.Grid
 import it.unibo.scafi.simulation.s2.frontend.view.ViewSetting
 import lab.demo._
+import lab.demo2
 import lab.gui.patch.{ActionMovement, RadiusLikeSimulation}
 
 object GraphicalSimulation extends App {
@@ -12,7 +13,7 @@ object GraphicalSimulation extends App {
   val rows = 10
   val cols = 10
 
-  val programClass = classOf[Main1]
+  val programClass = classOf[demo2.Main1]
 
   val movementSimulation = SimulationInfo(program = programClass,
     metaActions = new ActionMovement :: Nil,

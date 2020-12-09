@@ -1,4 +1,4 @@
-package lab.demo
+package lab.demo2
 
 import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.bridge.SimulationInfo
 import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.configuration.ScafiProgramBuilder
