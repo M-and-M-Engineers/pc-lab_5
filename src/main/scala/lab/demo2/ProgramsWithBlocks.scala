@@ -50,7 +50,7 @@ object SimulationWithBlocks extends App {
   ).launch()
 }
 
-trait AggregateProgramSkeleton extends AggregateProgram with StandardSensors with BlockG {
+trait AggregateProgramSkeleton extends AggregateProgram with StandardSensors with BlockG with BlockC {
   def sense1 = sense[Boolean]("sens1")
   def sense2 = sense[Boolean]("sens2")
   def sense3 = sense[Boolean]("sens3")
@@ -78,11 +78,11 @@ class Main4 extends AggregateProgramSkeleton {
 }
 
 class Main5 extends AggregateProgramSkeleton {
-  override def main() = G2(sense1)(mid)(x=>x)(nbrRange)
+  override def main() = G2(sense1)(G2(sense2)(0.0)(_+nbrRange)(nbrRange))(x=>x)(nbrRange)
 }
 
 class Main6 extends AggregateProgramSkeleton {
-  override def main() = if (sense1) 10 else 20
+  override def main() = ???
 }
 
 class Main7 extends AggregateProgramSkeleton {
