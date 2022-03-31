@@ -28,7 +28,7 @@ object Simulation extends App {
     case x => x.toString
   }
 
-  val programClass = classOf[Main11]
+  val programClass = classOf[Case16]
   val nodes = 100
   val neighbourRange = 200
   val (width, height) = (1920, 1080)
@@ -50,7 +50,7 @@ abstract class AggregateProgramSkeleton extends AggregateProgram with StandardSe
 }
 
 class Main extends AggregateProgramSkeleton {
-  override def main() = 1
+  override def main() = rep(Double.MaxValue){ d => mux[Double](sense1){0.0}{minHoodPlus( mux(sense2){nbr{d}+(nbrRange * 5)}{nbr{d}+nbrRange} )} }
 }
 
 class Main1 extends AggregateProgramSkeleton {
@@ -119,4 +119,24 @@ class Main15 extends AggregateProgramSkeleton {
 
 class Main16 extends AggregateProgramSkeleton {
   override def main() = rep(Double.MaxValue){ d => mux[Double](sense1){0.0}{minHoodPlus(nbr{d}+nbrRange)} }
+}
+
+class Case9 extends AggregateProgramSkeleton {
+  override def main() = branch(sense1) (rep(0.0)(v => if (v >= 1000) 1000 else v+0.1))(0)
+}
+
+class Case12 extends AggregateProgramSkeleton {
+  override def main() = foldhoodPlus[Set[ID]](Set.empty)(_ ++ _)(nbr{Set(mid())})
+}
+
+class Case8 extends AggregateProgramSkeleton {
+  override def main() = minHoodPlus[(D, ID)]{(nbr{0.0} + nbrRange, nbr{mid()})}._2
+}
+
+class Case14 extends AggregateProgramSkeleton {
+  override def main() = rep(mid()) (id => maxHoodPlus( nbr{mid() max id} ))
+}
+
+class Case16 extends AggregateProgramSkeleton {
+  override def main() = rep(Double.MaxValue){ d => mux(sense1){0.0}{minHoodPlus( mux(sense2){nbr{d} + (nbrRange * 5)}{nbr{d} + nbrRange} )} }
 }
