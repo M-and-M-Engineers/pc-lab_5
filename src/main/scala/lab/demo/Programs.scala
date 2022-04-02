@@ -2,13 +2,13 @@ package lab.demo
 
 import it.unibo.scafi.incarnations.BasicAbstractIncarnation
 import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.bridge.ExportEvaluation.EXPORT_EVALUATION
+import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.bridge.ScafiWorldIncarnation.EXPORT
 import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.bridge.SimulationInfo
 import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.configuration.{ScafiProgramBuilder, ScafiWorldInformation}
 import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.world.ScafiWorldInitializer.Random
-import it.unibo.scafi.simulation.s2.frontend.incarnation.scafi.bridge.ScafiWorldIncarnation.EXPORT
 import it.unibo.scafi.simulation.s2.frontend.view.{ViewSetting, WindowConfiguration}
-import lab.gui.patch.RadiusLikeSimulation
 import it.unibo.scafi.space.graphics2D.BasicShape2D.Circle
+import lab.gui.patch.RadiusLikeSimulation
 
 object Incarnation extends BasicAbstractIncarnation
 import lab.demo.Incarnation._ //import all stuff from an incarnation
@@ -28,7 +28,7 @@ object Simulation extends App {
     case x => x.toString
   }
 
-  val programClass = classOf[Case16]
+  val programClass = classOf[Step1]
   val nodes = 100
   val neighbourRange = 200
   val (width, height) = (1920, 1080)
@@ -140,3 +140,21 @@ class Case14 extends AggregateProgramSkeleton {
 class Case16 extends AggregateProgramSkeleton {
   override def main() = rep(Double.MaxValue){ d => mux(sense1){0.0}{minHoodPlus( mux(sense2){nbr{d} + (nbrRange * 5)}{nbr{d} + nbrRange} )} }
 }
+
+class Step1 extends AggregateProgramSkeleton {
+  import Builtins.Bounded._
+  // Initialize all nodes to infinite distance and with their own id.
+  // When "sense1" is active the node should be considered as source and it's distance will be set to 0.0
+  override def main() = rep((Double.MaxValue, mid())){src => mux(sense1){(0.0,mid())}
+  // Otherwise
+  {
+    // Find the shortest path to a source node
+    val min = minHoodPlus((nbr{src._1} + nbrRange, nbr{src._2}))
+    // If the shortest path is still infinite the node will get his own id (this is needed for initialization)
+    // So minHoodPlus won't set the id of all nodes of a cluster to the lowest one.
+    mux(min._1 < Double.MaxValue)
+      {min}
+      {(Double.MaxValue, mid())}
+  }}
+}
+
