@@ -28,7 +28,7 @@ object Simulation extends App {
     case x => x.toString
   }
 
-  val programClass = classOf[Step1]
+  val programClass = classOf[Step2]
   val nodes = 100
   val neighbourRange = 200
   val (width, height) = (1920, 1080)
@@ -152,9 +152,21 @@ class Step1 extends AggregateProgramSkeleton {
     val min = minHoodPlus((nbr{src._1} + nbrRange, nbr{src._2}))
     // If the shortest path is still infinite the node will get his own id (this is needed for initialization)
     // So minHoodPlus won't set the id of all nodes of a cluster to the lowest one.
-    mux(min._1 < Double.MaxValue)
-      {min}
-      {(Double.MaxValue, mid())}
+    mux(min._1 < Double.MaxValue) {min} {(Double.MaxValue, mid())}
   }}
 }
 
+class Step2 extends AggregateProgramSkeleton {
+
+  def partition(cond: Boolean): ID =
+    rep((Double.MaxValue, mid())) {src =>
+      mux(cond)
+      {(0.0, mid())}
+      {
+        val min = minHoodPlus((nbr {src._1 } + nbrRange, nbr {src._2}))
+        mux(min._1 < Double.MaxValue) {min} {(Double.MaxValue, mid())}
+      }
+    }._2
+
+  override def main() = partition(sense1)
+}
