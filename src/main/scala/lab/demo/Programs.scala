@@ -28,7 +28,7 @@ object Simulation extends App {
     case x => x.toString
   }
 
-  val programClass = classOf[Step2]
+  val programClass = classOf[Channel]
   val nodes = 100
   val neighbourRange = 200
   val (width, height) = (1920, 1080)
@@ -169,4 +169,20 @@ class Step2 extends AggregateProgramSkeleton {
     }._2
 
   override def main() = partition(sense1)
+}
+
+class Channel extends AggregateProgramSkeleton {
+  import Builtins.Bounded
+  def gradient(cond: => Boolean) = rep(Double.MaxValue) { d => mux(cond) { 0.0 } { minHoodPlus(nbr{d} + nbrRange) }}
+
+  def broadcast[A](cond: => Boolean, input: => A)(implicit of: Bounded[A]) = rep((Double.MaxValue, of.top)) { src =>
+    mux(cond)
+    { (0.0, input) }
+    {
+      val min = minHoodPlus((nbr{ src._1 } + nbrRange, nbr{ src._2 }))
+      mux(min._1 < Double.MaxValue) { min } {(Double.MaxValue, of.top)}
+    }
+  }._2
+
+  override def main() = broadcast(sense1, gradient(sense2))
 }
